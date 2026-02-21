@@ -153,6 +153,9 @@ export const Footer = () => {
               <Link to="/booking" className="block text-white/70 hover:text-mystic-gold transition-colors">
                 Book a Reading
               </Link>
+              <Link to="/blog" className="block text-white/70 hover:text-mystic-gold transition-colors">
+                Spiritual Insights Blog
+              </Link>
               <Link to="/contact" className="block text-white/70 hover:text-mystic-gold transition-colors">
                 Contact Us
               </Link>
