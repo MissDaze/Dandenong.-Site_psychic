@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Calendar, MessageSquare, BarChart3, LogOut, 
   CheckCircle, Clock, XCircle, Trash2, Eye, Star, RefreshCw,
   TrendingUp, Users, MessageCircle, Mail, Phone, PanelLeftClose, PanelLeft,
-  RotateCcw, Save, PhoneCall, MailPlus, StickyNote
+  RotateCcw, Save, PhoneCall, MailPlus, StickyNote, MessageSquareText
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
@@ -459,7 +459,15 @@ const AdminDashboard = () => {
                             data-testid={`call-booking-${booking.id}`}
                           >
                             <PhoneCall className="w-4 h-4" />
-                            {booking.phone}
+                            Call
+                          </a>
+                          <a 
+                            href={`sms:${booking.phone}`}
+                            className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-full text-purple-400 transition-colors"
+                            data-testid={`text-booking-${booking.id}`}
+                          >
+                            <MessageSquareText className="w-4 h-4" />
+                            Text
                           </a>
                           <a 
                             href={`mailto:${booking.email}`}
@@ -467,9 +475,10 @@ const AdminDashboard = () => {
                             data-testid={`email-booking-${booking.id}`}
                           >
                             <MailPlus className="w-4 h-4" />
-                            {booking.email}
+                            Email
                           </a>
                         </div>
+                        <p className="text-xs text-white/50 mt-1">{booking.phone} • {booking.email}</p>
 
                         <div className="flex gap-2 items-end">
                           <div className="flex-1">
@@ -598,14 +607,24 @@ const AdminDashboard = () => {
 
                         <div className="flex flex-wrap gap-3">
                           {query.phone && (
-                            <a 
-                              href={`tel:${query.phone}`}
-                              className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-full text-green-400 transition-colors"
-                              data-testid={`call-query-${query.id}`}
-                            >
-                              <PhoneCall className="w-4 h-4" />
-                              {query.phone}
-                            </a>
+                            <>
+                              <a 
+                                href={`tel:${query.phone}`}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-full text-green-400 transition-colors"
+                                data-testid={`call-query-${query.id}`}
+                              >
+                                <PhoneCall className="w-4 h-4" />
+                                Call
+                              </a>
+                              <a 
+                                href={`sms:${query.phone}`}
+                                className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 rounded-full text-purple-400 transition-colors"
+                                data-testid={`text-query-${query.id}`}
+                              >
+                                <MessageSquareText className="w-4 h-4" />
+                                Text
+                              </a>
+                            </>
                           )}
                           <a 
                             href={`mailto:${query.email}?subject=Re: ${query.subject}`}
@@ -613,9 +632,10 @@ const AdminDashboard = () => {
                             data-testid={`email-query-${query.id}`}
                           >
                             <MailPlus className="w-4 h-4" />
-                            {query.email}
+                            Email
                           </a>
                         </div>
+                        <p className="text-xs text-white/50 mt-1">{query.phone && `${query.phone} • `}{query.email}</p>
 
                         <div className="flex gap-2 items-end">
                           <div className="flex-1">
