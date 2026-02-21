@@ -6,11 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { 
   LayoutDashboard, Calendar, MessageSquare, BarChart3, LogOut, 
   CheckCircle, Clock, XCircle, Trash2, Eye, Star, RefreshCw,
-  TrendingUp, Users, MessageCircle, Mail, Phone, PanelLeftClose, PanelLeft
+  TrendingUp, Users, MessageCircle, Mail, Phone, PanelLeftClose, PanelLeft,
+  RotateCcw, Save, PhoneCall, MailPlus, StickyNote
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
@@ -27,6 +29,9 @@ const AdminDashboard = () => {
   const [analytics, setAnalytics] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [flippedBookings, setFlippedBookings] = useState({});
+  const [flippedQueries, setFlippedQueries] = useState({});
+  const [editingNotes, setEditingNotes] = useState({});
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -107,6 +112,47 @@ const AdminDashboard = () => {
     } catch (error) {
       toast.error('Failed to delete query');
     }
+  };
+
+  const toggleBookingFlip = (id) => {
+    setFlippedBookings(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const toggleQueryFlip = (id) => {
+    setFlippedQueries(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const updateBookingNotes = async (id, notes) => {
+    try {
+      await axios.patch(`${API}/bookings/${id}/notes`, { admin_notes: notes }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, admin_notes: notes } : b));
+      toast.success('Notes saved');
+    } catch (error) {
+      toast.error('Failed to save notes');
+    }
+  };
+
+  const updateQueryNotes = async (id, notes) => {
+    try {
+      await axios.patch(`${API}/queries/${id}/notes`, { admin_notes: notes }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setQueries(prev => prev.map(q => q.id === id ? { ...q, admin_notes: notes } : q));
+      toast.success('Notes saved');
+    } catch (error) {
+      toast.error('Failed to save notes');
+    }
+  };
+
+  const handleNotesChange = (type, id, value) => {
+    setEditingNotes(prev => ({ ...prev, [`${type}-${id}`]: value }));
+  };
+
+  const getNotesValue = (type, id, originalNotes) => {
+    const key = `${type}-${id}`;
+    return editingNotes[key] !== undefined ? editingNotes[key] : (originalNotes || '');
   };
 
   const handleLogout = () => {
