@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { 
   LayoutDashboard, Calendar, MessageSquare, BarChart3, LogOut, 
   CheckCircle, Clock, XCircle, Trash2, Eye, Star, RefreshCw,
-  TrendingUp, Users, MessageCircle, Mail, Phone
+  TrendingUp, Users, MessageCircle, Mail, Phone, PanelLeftClose, PanelLeft
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
@@ -26,6 +26,7 @@ const AdminDashboard = () => {
   const [queries, setQueries] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -129,13 +130,15 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-mystic-dark flex" data-testid="admin-dashboard">
       {/* Sidebar */}
-      <aside className="admin-sidebar glass-dark border-r border-white/10 p-6 flex flex-col">
-        <Link to="/" className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 rounded-full bg-purple-gradient flex items-center justify-center">
-            <Star className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-serif text-lg font-semibold">Admin</span>
-        </Link>
+      <aside className={`glass-dark border-r border-white/10 p-6 flex flex-col transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
+        <div className="flex items-center justify-between mb-10">
+          <Link to="/" className={`flex items-center gap-3 ${!sidebarOpen && 'justify-center'}`}>
+            <div className="w-10 h-10 rounded-full bg-purple-gradient flex items-center justify-center flex-shrink-0">
+              <Star className="w-5 h-5 text-white" />
+            </div>
+            {sidebarOpen && <span className="font-serif text-lg font-semibold">Admin</span>}
+          </Link>
+        </div>
 
         <nav className="space-y-2 flex-1">
           {[
@@ -150,24 +153,37 @@ const AdminDashboard = () => {
                 activeTab === item.id 
                   ? 'bg-mystic-purple/20 text-white' 
                   : 'text-white/60 hover:bg-white/5 hover:text-white'
-              }`}
+              } ${!sidebarOpen && 'justify-center px-2'}`}
               data-testid={`nav-${item.id}`}
+              title={!sidebarOpen ? item.label : ''}
             >
-              <item.icon className="w-5 h-5" />
-              {item.label}
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              {sidebarOpen && item.label}
             </button>
           ))}
         </nav>
 
-        <Button
-          onClick={handleLogout}
-          variant="ghost"
-          className="justify-start gap-3 text-white/60 hover:text-white hover:bg-white/5"
-          data-testid="logout-btn"
-        >
-          <LogOut className="w-5 h-5" />
-          Logout
-        </Button>
+        <div className="space-y-2">
+          <Button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            variant="ghost"
+            className={`w-full justify-start gap-3 text-white/60 hover:text-white hover:bg-white/5 ${!sidebarOpen && 'justify-center px-2'}`}
+            data-testid="toggle-sidebar-btn"
+          >
+            {sidebarOpen ? <PanelLeftClose className="w-5 h-5 flex-shrink-0" /> : <PanelLeft className="w-5 h-5 flex-shrink-0" />}
+            {sidebarOpen && 'Hide Sidebar'}
+          </Button>
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className={`w-full justify-start gap-3 text-white/60 hover:text-white hover:bg-white/5 ${!sidebarOpen && 'justify-center px-2'}`}
+            data-testid="logout-btn"
+            title={!sidebarOpen ? 'Logout' : ''}
+          >
+            <LogOut className="w-5 h-5 flex-shrink-0" />
+            {sidebarOpen && 'Logout'}
+          </Button>
+        </div>
       </aside>
 
       {/* Main Content */}
