@@ -55,6 +55,7 @@ class Booking(BaseModel):
     date: str
     time_slot: str
     notes: Optional[str] = ""
+    admin_notes: Optional[str] = ""
     status: str = "pending"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -73,6 +74,7 @@ class Query(BaseModel):
     phone: Optional[str] = ""
     subject: str
     message: str
+    admin_notes: Optional[str] = ""
     status: str = "new"
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -87,8 +89,14 @@ class ChatMessage(BaseModel):
 class BookingStatusUpdate(BaseModel):
     status: str
 
+class BookingNotesUpdate(BaseModel):
+    admin_notes: str
+
 class QueryStatusUpdate(BaseModel):
     status: str
+
+class QueryNotesUpdate(BaseModel):
+    admin_notes: str
 
 # ============== HELPERS ==============
 
@@ -181,6 +189,16 @@ async def update_booking_status(booking_id: str, data: BookingStatusUpdate, user
         raise HTTPException(status_code=404, detail="Booking not found")
     return {"message": "Booking updated"}
 
+@api_router.patch("/bookings/{booking_id}/notes")
+async def update_booking_notes(booking_id: str, data: BookingNotesUpdate, username: str = Depends(verify_token)):
+    result = await db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"admin_notes": data.admin_notes}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    return {"message": "Notes updated"}
+
 @api_router.delete("/bookings/{booking_id}")
 async def delete_booking(booking_id: str, username: str = Depends(verify_token)):
     result = await db.bookings.delete_one({"id": booking_id})
@@ -219,6 +237,16 @@ async def update_query_status(query_id: str, data: QueryStatusUpdate, username: 
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Query not found")
     return {"message": "Query updated"}
+
+@api_router.patch("/queries/{query_id}/notes")
+async def update_query_notes(query_id: str, data: QueryNotesUpdate, username: str = Depends(verify_token)):
+    result = await db.queries.update_one(
+        {"id": query_id},
+        {"$set": {"admin_notes": data.admin_notes}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Query not found")
+    return {"message": "Notes updated"}
 
 @api_router.delete("/queries/{query_id}")
 async def delete_query(query_id: str, username: str = Depends(verify_token)):
