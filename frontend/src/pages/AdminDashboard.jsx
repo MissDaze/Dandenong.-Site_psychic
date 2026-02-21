@@ -366,43 +366,47 @@ const AdminDashboard = () => {
 
         {/* Bookings Tab */}
         {activeTab === 'bookings' && (
-          <Card className="glass rounded-2xl overflow-hidden">
-            <ScrollArea className="h-[calc(100vh-250px)]">
-              <table className="w-full" data-testid="bookings-table">
-                <thead className="bg-white/5 sticky top-0">
-                  <tr>
-                    <th className="text-left p-4 text-white/60 font-medium">Customer</th>
-                    <th className="text-left p-4 text-white/60 font-medium">Service</th>
-                    <th className="text-left p-4 text-white/60 font-medium">Date & Time</th>
-                    <th className="text-left p-4 text-white/60 font-medium">Status</th>
-                    <th className="text-left p-4 text-white/60 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map(booking => (
-                    <tr key={booking.id} className="border-t border-white/5 hover:bg-white/5">
-                      <td className="p-4">
-                        <div>
-                          <p className="font-medium">{booking.name}</p>
-                          <p className="text-sm text-white/60 flex items-center gap-1">
-                            <Mail className="w-3 h-3" /> {booking.email}
-                          </p>
-                          <p className="text-sm text-white/60 flex items-center gap-1">
-                            <Phone className="w-3 h-3" /> {booking.phone}
-                          </p>
+          <div className="grid gap-4" data-testid="bookings-grid">
+            {bookings.map(booking => (
+              <div 
+                key={booking.id} 
+                className={`flip-card h-48 ${flippedBookings[booking.id] ? 'flipped' : ''}`}
+              >
+                <div className="flip-card-inner">
+                  {/* Front of Card */}
+                  <Card 
+                    className="flip-card-front glass p-6 rounded-2xl cursor-pointer hover:border-mystic-purple/50 transition-colors h-full"
+                    onClick={() => toggleBookingFlip(booking.id)}
+                    data-testid={`booking-card-${booking.id}`}
+                  >
+                    <div className="flex items-start justify-between h-full">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-serif text-xl font-semibold">{booking.name}</h3>
+                          <Badge className={getStatusBadge(booking.status)}>
+                            {booking.status}
+                          </Badge>
                         </div>
-                      </td>
-                      <td className="p-4">{booking.service}</td>
-                      <td className="p-4">
-                        <p>{booking.date}</p>
-                        <p className="text-sm text-white/60">{booking.time_slot}</p>
-                      </td>
-                      <td className="p-4">
+                        <p className="text-mystic-gold font-medium">{booking.service}</p>
+                        <div className="flex items-center gap-4 mt-3 text-sm text-white/60">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-4 h-4" /> {booking.date}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" /> {booking.time_slot}
+                          </span>
+                        </div>
+                        {booking.notes && (
+                          <p className="text-sm text-white/50 mt-2 italic">"{booking.notes}"</p>
+                        )}
+                        <p className="text-xs text-white/30 mt-3">Click to view contact details</p>
+                      </div>
+                      <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
                         <Select
                           value={booking.status}
                           onValueChange={(val) => updateBookingStatus(booking.id, val)}
                         >
-                          <SelectTrigger className="w-32 bg-white/5 border-white/10">
+                          <SelectTrigger className="w-28 bg-white/5 border-white/10 text-sm">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -412,10 +416,8 @@ const AdminDashboard = () => {
                             <SelectItem value="cancelled">Cancelled</SelectItem>
                           </SelectContent>
                         </Select>
-                      </td>
-                      <td className="p-4">
                         <Button
-                          size="icon"
+                          size="sm"
                           variant="ghost"
                           onClick={() => deleteBooking(booking.id)}
                           className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
@@ -423,20 +425,91 @@ const AdminDashboard = () => {
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
-                      </td>
-                    </tr>
-                  ))}
-                  {bookings.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="text-center py-12 text-white/50">
-                        No bookings found
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </ScrollArea>
-          </Card>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Back of Card */}
+                  <Card 
+                    className="flip-card-back glass p-6 rounded-2xl h-full"
+                    data-testid={`booking-card-back-${booking.id}`}
+                  >
+                    <div className="flex items-start justify-between h-full">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-serif text-lg font-semibold flex items-center gap-2">
+                            <Users className="w-5 h-5 text-mystic-purple" />
+                            Contact Details
+                          </h3>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => toggleBookingFlip(booking.id)}
+                            className="text-white/60 hover:text-white"
+                            data-testid={`flip-back-booking-${booking.id}`}
+                          >
+                            <RotateCcw className="w-4 h-4 mr-1" /> Back
+                          </Button>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3">
+                          <a 
+                            href={`tel:${booking.phone}`}
+                            className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-full text-green-400 transition-colors"
+                            data-testid={`call-booking-${booking.id}`}
+                          >
+                            <PhoneCall className="w-4 h-4" />
+                            {booking.phone}
+                          </a>
+                          <a 
+                            href={`mailto:${booking.email}`}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-full text-blue-400 transition-colors"
+                            data-testid={`email-booking-${booking.id}`}
+                          >
+                            <MailPlus className="w-4 h-4" />
+                            {booking.email}
+                          </a>
+                        </div>
+
+                        <div className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <label className="text-xs text-white/50 flex items-center gap-1 mb-1">
+                              <StickyNote className="w-3 h-3" /> Admin Notes
+                            </label>
+                            <Textarea
+                              value={getNotesValue('booking', booking.id, booking.admin_notes)}
+                              onChange={(e) => handleNotesChange('booking', booking.id, e.target.value)}
+                              placeholder="Add private notes about this client..."
+                              className="bg-white/5 border-white/10 text-sm h-16 resize-none"
+                              onClick={(e) => e.stopPropagation()}
+                              data-testid={`notes-booking-${booking.id}`}
+                            />
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateBookingNotes(booking.id, getNotesValue('booking', booking.id, booking.admin_notes));
+                            }}
+                            className="bg-mystic-purple hover:bg-mystic-purple/80"
+                            data-testid={`save-notes-booking-${booking.id}`}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </div>
+            ))}
+            {bookings.length === 0 && (
+              <Card className="glass p-12 rounded-2xl text-center">
+                <Calendar className="w-12 h-12 text-white/20 mx-auto mb-4" />
+                <p className="text-white/50">No bookings found</p>
+              </Card>
+            )}
+          </div>
         )}
 
         {/* Queries Tab */}
