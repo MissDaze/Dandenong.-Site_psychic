@@ -1,0 +1,209 @@
+{
+  "identity": {
+    "persona": "E1: The Anti-AI Designer",
+    "tone": "Mystical, Trustworthy, Deep, Empathetic",
+    "mission": "Create a digital sanctuary that feels like a midnight conversation with the universe. Avoid kitschy 'crystal shop' vibes; aim for 'luxury cosmic consultancy'.",
+    "principles": [
+      "Fusion: Ancient Astrology x Modern SaaS (Swiss Style).",
+      "Emotion: Every interaction should feel like a revelation.",
+      "Depth: Use layers, glass, and shadows to create a sense of the unknown."
+    ]
+  },
+  "typography": {
+    "headings": {
+      "family": "Cormorant Garamond, serif",
+      "weights": ["400", "600", "700"],
+      "usage": "Use for all H1-H3. It conveys ancient wisdom and elegance.",
+      "letterSpacing": "-0.02em"
+    },
+    "body": {
+      "family": "Manrope, sans-serif",
+      "weights": ["300", "400", "500"],
+      "usage": "Use for all body text, UI elements, and data.",
+      "letterSpacing": "0.01em"
+    },
+    "mono": {
+      "family": "JetBrains Mono, monospace",
+      "usage": "Use for tiny labels, dates, or 'technical' astrology data (degrees, coordinates)."
+    }
+  },
+  "colors": {
+    "palette_name": "Midnight Prophecy",
+    "mode": "dark",
+    "base": {
+      "background": "#0F0C29",
+      "foreground": "#E2E8F0",
+      "card": "rgba(23, 20, 50, 0.6)",
+      "card_foreground": "#F1F5F9",
+      "border": "rgba(148, 163, 184, 0.1)"
+    },
+    "brand": {
+      "primary": "#7C3AED",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#F59E0B",
+      "secondary_foreground": "#000000",
+      "accent": "#D946EF",
+      "accent_foreground": "#FFFFFF"
+    },
+    "gradients": {
+      "hero": "radial-gradient(circle at 50% 0%, #302b63 0%, #0f0c29 100%)",
+      "text_gold": "linear-gradient(135deg, #F59E0B 0%, #FDE68A 100%)",
+      "mystic_beam": "linear-gradient(to right, transparent, #7C3AED, transparent)"
+    },
+    "status": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444"
+    }
+  },
+  "spacing": {
+    "scale": "Generous",
+    "section_padding": "py-24 md:py-32",
+    "container_padding": "px-6 md:px-12",
+    "element_gap": "gap-8"
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "className": "backdrop-blur-xl bg-black/40 border border-white/10 shadow-2xl"
+    },
+    "borders": {
+      "tracing_beam": "Use a moving gradient border for 'Featured Service' cards.",
+      "subtle": "1px solid rgba(255, 255, 255, 0.08)"
+    },
+    "texture": {
+      "noise": "Overlay a 5% opacity noise texture on the main background to kill digital flatness."
+    },
+    "shadows": {
+      "glow": "0 0 40px -10px rgba(124, 58, 237, 0.3)"
+    }
+  },
+  "components": {
+    "Button": {
+      "default": "bg-white text-black hover:bg-slate-200 rounded-full px-8 py-6 font-medium tracking-wide transition-transform hover:scale-105",
+      "outline": "border border-white/20 text-white hover:bg-white/10 rounded-full px-8 py-6",
+      "ghost": "text-white/70 hover:text-white hover:bg-white/5"
+    },
+    "Card": {
+      "style": "glass",
+      "radius": "rounded-2xl",
+      "padding": "p-8"
+    },
+    "Input": {
+      "style": "bg-white/5 border-white/10 focus:border-purple-500/50 text-white placeholder:text-white/30 rounded-lg h-12"
+    },
+    "Navigation": {
+      "style": "floating",
+      "background": "glass"
+    }
+  },
+  "layout_strategies": {
+    "homepage": {
+      "hero": {
+        "type": "Centered with Atmospheric Background",
+        "elements": [
+          "H1: 'Unlock Your Destiny in Dandenong' (Serif, 5xl+)",
+          "Sub: 'Ancient wisdom meets modern guidance. Trusted by 248+ souls.'",
+          "CTA: 'Book a Reading' (Primary) + 'Chat with Spirit AI' (Secondary)",
+          "Background: 'Vibrant purple nebula' image with overlay."
+        ]
+      },
+      "services_grid": {
+        "mode": "Tetris Grid",
+        "items": [
+          "Psychic Reading (Large)",
+          "Astrology Consultation (Tall)",
+          "Love Reading (Square)",
+          "Spiritual Healing (Square)"
+        ]
+      },
+      "testimonials": {
+        "style": "Horizontal Scroll",
+        "card_style": "Minimalist Glass"
+      }
+    },
+    "booking_page": {
+      "layout": "Split Screen",
+      "left": "Service Details & Mystical Imagery",
+      "right": "Calendar & Form (Clean, functional)"
+    },
+    "admin_dashboard": {
+      "layout": "Sidebar + Dense Grid",
+      "style": "Professional Dark Mode (muted purples, high contrast text)",
+      "widgets": "Booking Stats, Recent Queries, Revenue"
+    }
+  },
+  "assets": {
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 1.5px",
+      "mapping": {
+        "Psychic": "Eye",
+        "Astrology": "Star",
+        "Love": "Heart",
+        "Healing": "Sun",
+        "Chat": "MessageCircle",
+        "Calendar": "Calendar"
+      }
+    },
+    "images": [
+      {
+        "category": "Hero Background",
+        "url": "https://images.unsplash.com/photo-1754851539824-5a87c5c7cb86?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwyfHxteXN0aWNhbCUyMGdhbGF4eSUyMHB1cnBsZSUyMGNvbnN0ZWxsYXRpb24lMjBiYWNrZ3JvdW5kJTIwZXRoZXJlYWx8ZW58MHx8fHwxNzcxNjM5ODM2fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Vibrant purple nebula",
+        "usage": "Main Hero Section Background (Cover, Fixed)"
+      },
+      {
+        "category": "Footer Background",
+        "url": "https://images.unsplash.com/photo-1626553683558-dd8dc97e40a4?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHw0fHxteXN0aWNhbCUyMGdhbGF4eSUyMHB1cnBsZSUyMGNvbnN0ZWxsYXRpb24lMjBiYWNrZ3JvdW5kJTIwZXRoZXJlYWx8ZW58MHx8fHwxNzcxNjM5ODM2fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Blue and black abstract",
+        "usage": "Footer Background or 'Contact Us' Section"
+      },
+      {
+        "category": "Service Card Accent",
+        "url": "https://images.unsplash.com/photo-1610209204869-4822c0a980da?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA3MDB8MHwxfHNlYXJjaHwzfHxteXN0aWNhbCUyMGdhbGF4eSUyMHB1cnBsZSUyMGNvbnN0ZWxsYXRpb24lMjBiYWNrZ3JvdW5kJTIwZXRoZXJlYWx8ZW58MHx8fHwxNzcxNjM5ODM2fDA&ixlib=rb-4.1.0&q=85",
+        "alt": "Purple textile texture",
+        "usage": "Overlay for 'Psychic Reading' card hover state"
+      }
+    ]
+  },
+  "motion": {
+    "page_load": "Fade in with slight upward drift (staggered)",
+    "hover": "Scale 1.02 + Brightness 1.1 + Border Glow",
+    "scroll": "Parallax effect on background stars"
+  },
+  "accessibility": {
+    "contrast": "Ensure all text is WCAG AA compliant. Use lighter grays (#CBD5E1) on dark backgrounds, never dark gray.",
+    "focus": "Visible purple ring offset by 2px on all interactive elements."
+  },
+  "tech_stack": {
+    "frontend": "React (Create React App) + Tailwind CSS + Framer Motion (recommended for effects)",
+    "backend": "FastAPI + MongoDB",
+    "libraries": [
+      "lucide-react",
+      "clsx",
+      "tailwind-merge",
+      "sonner"
+    ]
+  },
+  "instructions_to_main_agent": {
+    "1": "Install 'lucide-react' for icons if not present.",
+    "2": "Configure 'tailwind.config.js' to add the custom colors and font families (Cormorant Garamond, Manrope).",
+    "3": "Create a 'Layout' component that wraps pages with the Navbar and Footer.",
+    "4": "Implement the 'Tetris Grid' for the Services section using CSS Grid.",
+    "5": "Build the 'BookingForm' using Shadcn concepts (customized) - do not use raw HTML inputs.",
+    "6": "Ensure the 'Admin Dashboard' is distinct - simpler, higher density, but still dark mode."
+  },
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy.",
+    "Use glass-morphism effects with backdrop filters (12-24px blur).",
+    "You MUST NOT apply universal transition. Eg: 'transition: all'. This results in breaking transforms.",
+    "You MUST NOT center align the app container, ie do not add '.App { text-align: center; }' in the css file.",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations.",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠 for icons.",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use 2-3x more spacing than feels comfortable.",
+    "Use 'sonner' for toasts."
+  ]
+}
