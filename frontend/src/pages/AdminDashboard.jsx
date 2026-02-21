@@ -514,61 +514,140 @@ const AdminDashboard = () => {
 
         {/* Queries Tab */}
         {activeTab === 'queries' && (
-          <div className="space-y-4" data-testid="queries-list">
+          <div className="grid gap-4" data-testid="queries-list">
             {queries.map(query => (
-              <Card key={query.id} className="glass p-6 rounded-2xl">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{query.subject}</h3>
-                      <Badge className={getStatusBadge(query.status)}>
-                        {query.status}
-                      </Badge>
+              <div 
+                key={query.id} 
+                className={`flip-card h-52 ${flippedQueries[query.id] ? 'flipped' : ''}`}
+              >
+                <div className="flip-card-inner">
+                  {/* Front of Card */}
+                  <Card 
+                    className="flip-card-front glass p-6 rounded-2xl cursor-pointer hover:border-mystic-purple/50 transition-colors h-full"
+                    onClick={() => toggleQueryFlip(query.id)}
+                    data-testid={`query-card-${query.id}`}
+                  >
+                    <div className="flex items-start justify-between h-full">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-lg">{query.subject}</h3>
+                          <Badge className={getStatusBadge(query.status)}>
+                            {query.status}
+                          </Badge>
+                        </div>
+                        <p className="text-white/70 mb-3 line-clamp-2">{query.message}</p>
+                        <div className="flex flex-wrap gap-4 text-sm text-white/50">
+                          <span className="flex items-center gap-1">
+                            <Users className="w-4 h-4" /> {query.name}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" /> {format(new Date(query.created_at), 'MMM d, yyyy HH:mm')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-white/30 mt-3">Click to view contact details</p>
+                      </div>
+                      <div className="flex flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+                        <Select
+                          value={query.status}
+                          onValueChange={(val) => updateQueryStatus(query.id, val)}
+                        >
+                          <SelectTrigger className="w-28 bg-white/5 border-white/10 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="replied">Replied</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => deleteQuery(query.id)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          data-testid={`delete-query-${query.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-white/70 mb-4">{query.message}</p>
-                    <div className="flex flex-wrap gap-4 text-sm text-white/50">
-                      <span className="flex items-center gap-1">
-                        <Users className="w-4 h-4" /> {query.name}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" /> {query.email}
-                      </span>
-                      {query.phone && (
-                        <span className="flex items-center gap-1">
-                          <Phone className="w-4 h-4" /> {query.phone}
-                        </span>
-                      )}
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" /> {format(new Date(query.created_at), 'MMM d, yyyy HH:mm')}
-                      </span>
+                  </Card>
+
+                  {/* Back of Card */}
+                  <Card 
+                    className="flip-card-back glass p-6 rounded-2xl h-full"
+                    data-testid={`query-card-back-${query.id}`}
+                  >
+                    <div className="flex items-start justify-between h-full">
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-serif text-lg font-semibold flex items-center gap-2">
+                            <Users className="w-5 h-5 text-mystic-purple" />
+                            Contact Details
+                          </h3>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => toggleQueryFlip(query.id)}
+                            className="text-white/60 hover:text-white"
+                            data-testid={`flip-back-query-${query.id}`}
+                          >
+                            <RotateCcw className="w-4 h-4 mr-1" /> Back
+                          </Button>
+                        </div>
+
+                        <div className="flex flex-wrap gap-3">
+                          {query.phone && (
+                            <a 
+                              href={`tel:${query.phone}`}
+                              className="flex items-center gap-2 px-4 py-2 bg-green-500/20 hover:bg-green-500/30 rounded-full text-green-400 transition-colors"
+                              data-testid={`call-query-${query.id}`}
+                            >
+                              <PhoneCall className="w-4 h-4" />
+                              {query.phone}
+                            </a>
+                          )}
+                          <a 
+                            href={`mailto:${query.email}?subject=Re: ${query.subject}`}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 rounded-full text-blue-400 transition-colors"
+                            data-testid={`email-query-${query.id}`}
+                          >
+                            <MailPlus className="w-4 h-4" />
+                            {query.email}
+                          </a>
+                        </div>
+
+                        <div className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <label className="text-xs text-white/50 flex items-center gap-1 mb-1">
+                              <StickyNote className="w-3 h-3" /> Admin Notes
+                            </label>
+                            <Textarea
+                              value={getNotesValue('query', query.id, query.admin_notes)}
+                              onChange={(e) => handleNotesChange('query', query.id, e.target.value)}
+                              placeholder="Add private notes about this client..."
+                              className="bg-white/5 border-white/10 text-sm h-16 resize-none"
+                              onClick={(e) => e.stopPropagation()}
+                              data-testid={`notes-query-${query.id}`}
+                            />
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateQueryNotes(query.id, getNotesValue('query', query.id, query.admin_notes));
+                            }}
+                            className="bg-mystic-purple hover:bg-mystic-purple/80"
+                            data-testid={`save-notes-query-${query.id}`}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Select
-                      value={query.status}
-                      onValueChange={(val) => updateQueryStatus(query.id, val)}
-                    >
-                      <SelectTrigger className="w-28 bg-white/5 border-white/10">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="replied">Replied</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => deleteQuery(query.id)}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                      data-testid={`delete-query-${query.id}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  </Card>
                 </div>
-              </Card>
+              </div>
             ))}
             {queries.length === 0 && (
               <Card className="glass p-12 rounded-2xl text-center">
