@@ -1,34 +1,120 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Main App styles - keeping minimal as most styling is in index.css and Tailwind */
+
+/* Service card tetris grid */
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 1.5rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
+@media (max-width: 1024px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: auto;
     }
 }
 
-.App-header {
-    background-color: #0f0f10;
+@media (max-width: 640px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.service-large {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+.service-tall {
+    grid-row: span 2;
+}
+
+@media (max-width: 1024px) {
+    .service-large {
+        grid-column: span 2;
+        grid-row: span 1;
+    }
+    .service-tall {
+        grid-row: span 1;
+    }
+}
+
+@media (max-width: 640px) {
+    .service-large,
+    .service-tall {
+        grid-column: span 1;
+        grid-row: span 1;
+    }
+}
+
+/* Chat widget */
+.chat-widget {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 50;
+}
+
+.chat-window {
+    width: 380px;
+    max-height: 500px;
+}
+
+@media (max-width: 640px) {
+    .chat-window {
+        width: calc(100vw - 2rem);
+        max-height: 70vh;
+    }
+    .chat-widget {
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+
+/* Admin sidebar */
+.admin-sidebar {
+    width: 260px;
     min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+    .admin-sidebar {
+        width: 100%;
+        min-height: auto;
+    }
+}
+
+/* Testimonials horizontal scroll */
+.testimonials-scroll {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+    gap: 1.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
 }
 
-.App-link {
-    color: #61dafb;
+.testimonials-scroll::-webkit-scrollbar {
+    height: 6px;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.testimonials-scroll > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}
+
+/* Calendar customization */
+.rdp {
+    --rdp-cell-size: 40px;
+    --rdp-accent-color: #7C3AED;
+    --rdp-background-color: rgba(124, 58, 237, 0.2);
+}
+
+.rdp-day_selected:not([disabled]) {
+    background-color: #7C3AED !important;
+}
+
+.rdp-day_today:not(.rdp-day_selected) {
+    border: 1px solid #F59E0B;
 }
