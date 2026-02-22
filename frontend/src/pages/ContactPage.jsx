@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Send, Phone, MapPin, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 const ContactPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);

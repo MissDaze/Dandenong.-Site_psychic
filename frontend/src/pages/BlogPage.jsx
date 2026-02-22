@@ -7,7 +7,7 @@ import { Calendar, Clock, ArrowRight, BookOpen } from 'lucide-react';
 import { blogArticles } from '@/data/blogArticles';
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 const BlogPage = () => {
   useEffect(() => {

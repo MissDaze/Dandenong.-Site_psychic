@@ -9,7 +9,7 @@ import { Lock, User, Loader2, Star } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 const AdminLogin = () => {
   const [username, setUsername] = useState('');
