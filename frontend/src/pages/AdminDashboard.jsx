@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext';
 import axios from 'axios';
 import { format } from 'date-fns';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 const AdminDashboard = () => {
   const { token, logout, isAuthenticated } = useAuth();

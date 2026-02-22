@@ -12,7 +12,7 @@ import { Calendar as CalendarIcon, Clock, CheckCircle, Eye, Star, Heart, Sun, Lo
 import axios from 'axios';
 import { format, addDays, isBefore, startOfToday } from 'date-fns';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 const services = [
   { id: 'psychic-reading', name: 'Psychic Reading', icon: Eye, duration: '60 min' },

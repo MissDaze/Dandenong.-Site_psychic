@@ -14,7 +14,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import requests
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -28,8 +28,9 @@ db = client[os.environ['DB_NAME']]
 JWT_SECRET = os.environ.get('JWT_SECRET', 'default_secret')
 JWT_ALGORITHM = "HS256"
 
-# Emergent LLM Key
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+# OpenRouter API Key
+OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
+OPENROUTER_MODEL = "meta-llama/llama-3.1-8b-instruct:free"
 
 # Create the main app
 app = FastAPI()
@@ -261,17 +262,40 @@ async def delete_query(query_id: str, username: str = Depends(verify_token)):
 
 @api_router.post("/chat")
 async def chat_with_ai(data: ChatMessage):
+    if not OPENROUTER_API_KEY:
+        raise HTTPException(status_code=503, detail="AI chat is not configured. Please set OPENROUTER_API_KEY.")
+    
+    session_id = data.session_id or str(uuid.uuid4())
+    
     try:
-        session_id = data.session_id or str(uuid.uuid4())
+        headers = {
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        referer = os.environ.get('HTTP_REFERER', '')
+        site_title = os.environ.get('SITE_TITLE', '')
+        if referer:
+            headers["HTTP-Referer"] = referer
+        if site_title:
+            headers["X-Title"] = site_title
+
+        payload = {
+            "model": OPENROUTER_MODEL,
+            "messages": [
+                {"role": "system", "content": SYSTEM_MESSAGE},
+                {"role": "user", "content": data.message},
+            ],
+        }
         
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=session_id,
-            system_message=SYSTEM_MESSAGE
-        ).with_model("openai", "gpt-5.2")
-        
-        user_message = UserMessage(text=data.message)
-        response = await chat.send_message(user_message)
+        resp = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=30,
+        )
+        resp.raise_for_status()
+        result = resp.json()
+        response_text = result["choices"][0]["message"]["content"]
         
         # Track chat analytics
         await db.analytics.update_one(
@@ -280,12 +304,12 @@ async def chat_with_ai(data: ChatMessage):
             upsert=True
         )
         
-        return {"response": response, "session_id": session_id}
+        return {"response": response_text, "session_id": session_id}
     except Exception as e:
         logging.error(f"Chat error: {str(e)}")
         return {
             "response": "I apologize, but I'm having trouble connecting right now. Please try our contact form or call us at +61 426 272 559.",
-            "session_id": data.session_id or str(uuid.uuid4())
+            "session_id": session_id
         }
 
 # ============== ANALYTICS ROUTES ==============
