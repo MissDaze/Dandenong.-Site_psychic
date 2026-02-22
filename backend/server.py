@@ -30,7 +30,7 @@ JWT_ALGORITHM = "HS256"
 
 # OpenRouter API Key
 OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
-OPENROUTER_MODEL = "meta-llama/llama-3.1-8b-instruct:free"
+OPENROUTER_MODEL = os.environ.get('OPENROUTER_MODEL', 'meta-llama/llama-3.1-8b-instruct:free')
 
 # Create the main app
 app = FastAPI()
@@ -288,12 +288,19 @@ async def chat_with_ai(data: ChatMessage):
         }
         
         resp = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            "https://api.openrouter.ai/v1/chat/completions",
             headers=headers,
             json=payload,
             timeout=30,
         )
-        resp.raise_for_status()
+        if not resp.ok:
+            logging.error(
+                f"OpenRouter error: status={resp.status_code} body={resp.text[:500]}"
+            )
+            raise HTTPException(
+                status_code=502,
+                detail="AI service returned an error. Please try again later or contact us directly.",
+            )
         result = resp.json()
         response_text = result["choices"][0]["message"]["content"]
         
@@ -305,12 +312,14 @@ async def chat_with_ai(data: ChatMessage):
         )
         
         return {"response": response_text, "session_id": session_id}
+    except HTTPException:
+        raise
     except Exception as e:
         logging.error(f"Chat error: {str(e)}")
-        return {
-            "response": "I apologize, but I'm having trouble connecting right now. Please try our contact form or call us at +61 426 272 559.",
-            "session_id": session_id
-        }
+        raise HTTPException(
+            status_code=502,
+            detail="I'm having trouble connecting right now. Please try our contact form or call us at +61 426 272 559.",
+        )
 
 # ============== ANALYTICS ROUTES ==============
 
@@ -355,12 +364,16 @@ async def get_analytics_summary(username: str = Depends(verify_token)):
 
 @api_router.get("/analytics/page-views")
 async def track_page_view(page: str):
-    await db.analytics.update_one(
-        {"type": "page_views", "page": page, "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")},
-        {"$inc": {"count": 1}},
-        upsert=True
-    )
-    return {"message": "Tracked"}
+    try:
+        await db.analytics.update_one(
+            {"type": "page_views", "page": page, "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")},
+            {"$inc": {"count": 1}},
+            upsert=True
+        )
+        return {"message": "Tracked"}
+    except Exception as e:
+        logging.error(f"Analytics page-view tracking error: {str(e)}")
+        raise HTTPException(status_code=503, detail="Analytics service unavailable")
 
 # ============== TIME SLOTS ==============
 
