@@ -19,7 +19,8 @@ Set the following variables in your Railway service's **Variables** tab:
 | `MONGO_URL` | MongoDB connection string (e.g. `mongodb+srv://…`) |
 | `DB_NAME` | MongoDB database name |
 | `JWT_SECRET` | Secret used to sign admin JWTs |
-| `OPENROUTER_API_KEY` | API key for the OpenRouter AI chat integration (model: `meta-llama/llama-3.1-8b-instruct:free`) |
+| `OPENROUTER_API_KEY` | API key for the OpenRouter AI chat integration |
+| `OPENROUTER_MODEL` | *(optional)* OpenRouter model to use (default: `meta-llama/llama-3.1-8b-instruct:free`) |
 | `CORS_ORIGINS` | Comma-separated allowed origins (default: `*`) |
 
 > **Note:** Railway automatically injects `PORT` – no manual configuration needed.
@@ -57,4 +58,6 @@ yarn start        # React dev server on http://localhost:3000
 - A MongoDB instance is accessible at the `MONGO_URL` you provide (e.g. MongoDB Atlas free tier).
 - The admin account is initialised by calling `POST /api/init-admin` once after first deploy.
 - `OPENROUTER_API_KEY` is required only for the AI chat feature; the rest of the app works without it.
+- The AI chat feature calls `https://api.openrouter.ai/v1/chat/completions`.
+- If `OPENROUTER_MODEL` is not set, the default model `meta-llama/llama-3.1-8b-instruct:free` is used.
 
