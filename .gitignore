@@ -104,11 +104,6 @@ pids/
 # Memory/docs (development only)
 /app/memory/
 /app/docs/
--e 
-# Environment files
-*.env
-*.env.*
--e 
 # Environment files
 *.env
 *.env.*
