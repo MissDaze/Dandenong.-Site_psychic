@@ -1,0 +1,40 @@
+# Python bytecode & caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Node artefacts (built inside Docker, not needed from host)
+frontend/node_modules/
+frontend/build/
+
+# Environment / secrets
+*.env
+.env
+.env.*
+backend/.env
+
+# Test output
+test_reports/
+coverage/
+.coverage
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Misc
+*.md
+docs/
+memory/
+tests/

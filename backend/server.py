@@ -1,5 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -400,3 +402,35 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
+
+# ── Serve the React frontend build (present only in Docker / production) ─────
+FRONTEND_BUILD = ROOT_DIR.parent / "frontend" / "build"
+
+if FRONTEND_BUILD.exists():
+    # Serve compiled JS/CSS/media assets
+    app.mount(
+        "/static",
+        StaticFiles(directory=str(FRONTEND_BUILD / "static")),
+        name="react-static",
+    )
+
+    # Serve other root-level build artefacts (favicon, manifest, etc.)
+    @app.get("/favicon.ico", include_in_schema=False)
+    async def favicon():
+        path = FRONTEND_BUILD / "favicon.ico"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="favicon.ico not found")
+        return FileResponse(str(path))
+
+    @app.get("/manifest.json", include_in_schema=False)
+    async def manifest():
+        path = FRONTEND_BUILD / "manifest.json"
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="manifest.json not found")
+        return FileResponse(str(path))
+
+    # SPA catch-all – registered last so all /api/* routes take priority
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_react_app(full_path: str):
+        return FileResponse(str(FRONTEND_BUILD / "index.html"))
+
