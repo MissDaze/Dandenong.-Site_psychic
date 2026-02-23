@@ -79,3 +79,7 @@ pids/
 
 # Temporary files
 *.tmp
+-e 
+# Environment files
+*.env
+*.env.*
