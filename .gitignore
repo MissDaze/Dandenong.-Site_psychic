@@ -8,7 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -28,10 +27,6 @@ wheels/
 *.manifest
 *.spec
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -50,13 +45,11 @@ coverage.xml
 *.mo
 *.pot
 
-# Virtual Environments (keep these excluded)
+# Virtual Environments
 .venv
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
 
 # IDE
 .idea/
@@ -71,16 +64,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
-frontend/build/
-static/
-
 # OS files
 .DS_Store
 Thumbs.db
 
 # Logs
-logs/
 *.log
 
 # Runtime data
@@ -89,21 +77,5 @@ pids/
 *.seed
 *.pid.lock
 
-# Test reports
-/app/test_reports/
-
 # Temporary files
-/tmp/
 *.tmp
-
-# Memory/docs (development only)
-/app/memory/
-/app/docs/
--e 
-# Environment files
-*.env
-*.env.*
--e 
-# Environment files
-*.env
-*.env.*
