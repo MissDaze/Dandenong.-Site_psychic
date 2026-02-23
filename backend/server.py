@@ -1,5 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -12,25 +14,26 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'astrologer_db')]
 
 # JWT Config
-JWT_SECRET = os.environ.get('JWT_SECRET', 'default_secret')
+JWT_SECRET = os.environ.get('JWT_SECRET', 'default_secret_change_in_production')
 JWT_ALGORITHM = "HS256"
 
-# Emergent LLM Key
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+# Groq API Config
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
 
 # Create the main app
-app = FastAPI()
+app = FastAPI(title="Best Astrologer Dandenong API")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer(auto_error=False)
 
@@ -138,6 +141,41 @@ You can help with:
 Be warm, mystical yet professional. If customers have complex questions about their specific situation or want to book an appointment, encourage them to use our booking system or contact form.
 
 Keep responses concise but helpful. Never claim to actually perform readings - direct them to book an appointment for personalized services."""
+
+async def chat_with_groq(message: str, session_id: str) -> str:
+    """Send message to Groq API and get response"""
+    if not GROQ_API_KEY:
+        return "I apologize, but I'm currently unavailable. Please use our booking system or contact us at +61 426 272 559."
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": GROQ_MODEL,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_MESSAGE},
+                        {"role": "user", "content": message}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 500
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data["choices"][0]["message"]["content"]
+            else:
+                logging.error(f"Groq API error: {response.status_code} - {response.text}")
+                return "I apologize, but I'm having trouble connecting right now. Please try our contact form or call us at +61 426 272 559."
+                
+    except Exception as e:
+        logging.error(f"Chat error: {str(e)}")
+        return "I apologize, but I'm experiencing some difficulties. Please try again or contact us at +61 426 272 559."
 
 # ============== AUTH ROUTES ==============
 
@@ -259,32 +297,19 @@ async def delete_query(query_id: str, username: str = Depends(verify_token)):
 
 @api_router.post("/chat")
 async def chat_with_ai(data: ChatMessage):
-    try:
-        session_id = data.session_id or str(uuid.uuid4())
-        
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=session_id,
-            system_message=SYSTEM_MESSAGE
-        ).with_model("openai", "gpt-5.2")
-        
-        user_message = UserMessage(text=data.message)
-        response = await chat.send_message(user_message)
-        
-        # Track chat analytics
-        await db.analytics.update_one(
-            {"type": "chats", "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")},
-            {"$inc": {"count": 1}},
-            upsert=True
-        )
-        
-        return {"response": response, "session_id": session_id}
-    except Exception as e:
-        logging.error(f"Chat error: {str(e)}")
-        return {
-            "response": "I apologize, but I'm having trouble connecting right now. Please try our contact form or call us at +61 426 272 559.",
-            "session_id": data.session_id or str(uuid.uuid4())
-        }
+    session_id = data.session_id or str(uuid.uuid4())
+    
+    # Get AI response
+    response = await chat_with_groq(data.message, session_id)
+    
+    # Track chat analytics
+    await db.analytics.update_one(
+        {"type": "chats", "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")},
+        {"$inc": {"count": 1}},
+        upsert=True
+    )
+    
+    return {"response": response, "session_id": session_id}
 
 # ============== ANALYTICS ROUTES ==============
 
@@ -374,22 +399,57 @@ async def init_admin():
     })
     return {"message": "Admin created", "username": "admin", "password": "admin123"}
 
-# ============== ROOT ==============
+# ============== HEALTH CHECK ==============
 
 @api_router.get("/")
 async def root():
-    return {"message": "Best Astrologer in Dandenong API"}
+    return {"message": "Best Astrologer in Dandenong API", "status": "healthy"}
+
+@api_router.get("/health")
+async def health_check():
+    try:
+        # Check MongoDB connection
+        await db.command("ping")
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": str(e)}
 
 # Include router
 app.include_router(api_router)
 
+# CORS configuration
+cors_origins = os.environ.get('CORS_ORIGINS', '*')
+if cors_origins == '*':
+    origins = ['*']
+else:
+    origins = [origin.strip() for origin in cors_origins.split(',')]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files in production (Railway)
+static_path = ROOT_DIR / "static"
+if static_path.exists():
+    app.mount("/static", StaticFiles(directory=str(static_path / "static")), name="static")
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # API routes are handled by the router
+        if full_path.startswith("api"):
+            raise HTTPException(status_code=404)
+        
+        # Check if file exists
+        file_path = static_path / full_path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        
+        # Return index.html for SPA routing
+        return FileResponse(static_path / "index.html")
 
 logging.basicConfig(
     level=logging.INFO,
