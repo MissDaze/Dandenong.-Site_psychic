@@ -14,26 +14,26 @@ import uuid
 from datetime import datetime, timezone, timedelta
 import jwt
 import bcrypt
-import requests
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 # MongoDB connection
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ.get('DB_NAME', 'astrologer_db')]
 
 # JWT Config
-JWT_SECRET = os.environ.get('JWT_SECRET', 'default_secret')
+JWT_SECRET = os.environ.get('JWT_SECRET', 'default_secret_change_in_production')
 JWT_ALGORITHM = "HS256"
 
-# OpenRouter API Key
-OPENROUTER_API_KEY = os.environ.get('OPENROUTER_API_KEY', '')
-OPENROUTER_MODEL = os.environ.get('OPENROUTER_MODEL', 'meta-llama/llama-3.1-8b-instruct:free')
+# Groq API Config
+GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
 
 # Create the main app
-app = FastAPI()
+app = FastAPI(title="Best Astrologer Dandenong API")
 api_router = APIRouter(prefix="/api")
 security = HTTPBearer(auto_error=False)
 
@@ -141,6 +141,41 @@ You can help with:
 Be warm, mystical yet professional. If customers have complex questions about their specific situation or want to book an appointment, encourage them to use our booking system or contact form.
 
 Keep responses concise but helpful. Never claim to actually perform readings - direct them to book an appointment for personalized services."""
+
+async def chat_with_groq(message: str, session_id: str) -> str:
+    """Send message to Groq API and get response"""
+    if not GROQ_API_KEY:
+        return "I apologize, but I'm currently unavailable. Please use our booking system or contact us at +61 426 272 559."
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": GROQ_MODEL,
+                    "messages": [
+                        {"role": "system", "content": SYSTEM_MESSAGE},
+                        {"role": "user", "content": message}
+                    ],
+                    "temperature": 0.7,
+                    "max_tokens": 500
+                }
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data["choices"][0]["message"]["content"]
+            else:
+                logging.error(f"Groq API error: {response.status_code} - {response.text}")
+                return "I apologize, but I'm having trouble connecting right now. Please try our contact form or call us at +61 426 272 559."
+                
+    except Exception as e:
+        logging.error(f"Chat error: {str(e)}")
+        return "I apologize, but I'm experiencing some difficulties. Please try again or contact us at +61 426 272 559."
 
 # ============== AUTH ROUTES ==============
 
@@ -262,64 +297,19 @@ async def delete_query(query_id: str, username: str = Depends(verify_token)):
 
 @api_router.post("/chat")
 async def chat_with_ai(data: ChatMessage):
-    if not OPENROUTER_API_KEY:
-        raise HTTPException(status_code=503, detail="AI chat is not configured. Please set OPENROUTER_API_KEY.")
-    
     session_id = data.session_id or str(uuid.uuid4())
     
-    try:
-        headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-        }
-        referer = os.environ.get('HTTP_REFERER', '')
-        site_title = os.environ.get('SITE_TITLE', '')
-        if referer:
-            headers["HTTP-Referer"] = referer
-        if site_title:
-            headers["X-Title"] = site_title
-
-        payload = {
-            "model": OPENROUTER_MODEL,
-            "messages": [
-                {"role": "system", "content": SYSTEM_MESSAGE},
-                {"role": "user", "content": data.message},
-            ],
-        }
-        
-        resp = requests.post(
-            "https://api.openrouter.ai/v1/chat/completions",
-            headers=headers,
-            json=payload,
-            timeout=30,
-        )
-        if not resp.ok:
-            logging.error(
-                f"OpenRouter error: status={resp.status_code} body={resp.text[:500]}"
-            )
-            raise HTTPException(
-                status_code=502,
-                detail="AI service returned an error. Please try again later or contact us directly.",
-            )
-        result = resp.json()
-        response_text = result["choices"][0]["message"]["content"]
-        
-        # Track chat analytics
-        await db.analytics.update_one(
-            {"type": "chats", "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")},
-            {"$inc": {"count": 1}},
-            upsert=True
-        )
-        
-        return {"response": response_text, "session_id": session_id}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logging.error(f"Chat error: {str(e)}")
-        raise HTTPException(
-            status_code=502,
-            detail="I'm having trouble connecting right now. Please try our contact form or call us at +61 426 272 559.",
-        )
+    # Get AI response
+    response = await chat_with_groq(data.message, session_id)
+    
+    # Track chat analytics
+    await db.analytics.update_one(
+        {"type": "chats", "date": datetime.now(timezone.utc).strftime("%Y-%m-%d")},
+        {"$inc": {"count": 1}},
+        upsert=True
+    )
+    
+    return {"response": response, "session_id": session_id}
 
 # ============== ANALYTICS ROUTES ==============
 
@@ -413,22 +403,57 @@ async def init_admin():
     })
     return {"message": "Admin created", "username": "admin", "password": "admin123"}
 
-# ============== ROOT ==============
+# ============== HEALTH CHECK ==============
 
 @api_router.get("/")
 async def root():
-    return {"message": "Best Astrologer in Dandenong API"}
+    return {"message": "Best Astrologer in Dandenong API", "status": "healthy"}
+
+@api_router.get("/health")
+async def health_check():
+    try:
+        # Check MongoDB connection
+        await db.command("ping")
+        return {"status": "healthy", "database": "connected"}
+    except Exception as e:
+        return {"status": "unhealthy", "database": str(e)}
 
 # Include router
 app.include_router(api_router)
 
+# CORS configuration
+cors_origins = os.environ.get('CORS_ORIGINS', '*')
+if cors_origins == '*':
+    origins = ['*']
+else:
+    origins = [origin.strip() for origin in cors_origins.split(',')]
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files in production (Railway)
+static_path = ROOT_DIR / "static"
+if static_path.exists():
+    app.mount("/static", StaticFiles(directory=str(static_path / "static")), name="static")
+    
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        # API routes are handled by the router
+        if full_path.startswith("api"):
+            raise HTTPException(status_code=404)
+        
+        # Check if file exists
+        file_path = static_path / full_path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        
+        # Return index.html for SPA routing
+        return FileResponse(static_path / "index.html")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -439,35 +464,4 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-
-# ── Serve the React frontend build (present only in Docker / production) ─────
-FRONTEND_BUILD = ROOT_DIR.parent / "frontend" / "build"
-
-if FRONTEND_BUILD.exists():
-    # Serve compiled JS/CSS/media assets
-    app.mount(
-        "/static",
-        StaticFiles(directory=str(FRONTEND_BUILD / "static")),
-        name="react-static",
-    )
-
-    # Serve other root-level build artefacts (favicon, manifest, etc.)
-    @app.get("/favicon.ico", include_in_schema=False)
-    async def favicon():
-        path = FRONTEND_BUILD / "favicon.ico"
-        if not path.exists():
-            raise HTTPException(status_code=404, detail="favicon.ico not found")
-        return FileResponse(str(path))
-
-    @app.get("/manifest.json", include_in_schema=False)
-    async def manifest():
-        path = FRONTEND_BUILD / "manifest.json"
-        if not path.exists():
-            raise HTTPException(status_code=404, detail="manifest.json not found")
-        return FileResponse(str(path))
-
-    # SPA catch-all – registered last so all /api/* routes take priority
-    @app.get("/{full_path:path}", include_in_schema=False)
-    async def serve_react_app(full_path: str):
-        return FileResponse(str(FRONTEND_BUILD / "index.html"))
 
